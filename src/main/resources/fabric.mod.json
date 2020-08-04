@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "parkourrun",
+	"version": "${version}",
+	"name": "Parkour Run",
+	"description": "A parkour-based speed minigame for Minecraft.",
+	"authors": [
+		"haykam821"
+	],
+	"contact": {
+		"homepage": "https://github.com/haykam821/Parkour-Run#readme",
+		"issues": "https://github.com/haykam821/Parkour-Run/issues"
+	},
+	"entrypoints": {
+		"main": [
+			"io.github.haykam821.parkourrun.Main"
+		]
+	},
+	"accessWidener": "parkourrun.accesswidener",
+	"license": "MIT",
+	"icon": "assets/parkourrun/icon.png",
+	"depends": {
+		"fabricloader": ">=0.4.0"
+	}
+}

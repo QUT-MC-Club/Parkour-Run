@@ -1,0 +1,2 @@
+accessWidener	v1	named
+accessible	method	net/minecraft/structure/pool/SinglePoolElement	method_27233	(Lnet/minecraft/structure/StructureManager;)Lnet/minecraft/structure/Structure;
