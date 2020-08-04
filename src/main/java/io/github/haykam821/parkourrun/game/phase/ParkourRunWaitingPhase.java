@@ -1,5 +1,7 @@
-package io.github.haykam821.parkourrun.game;
+package io.github.haykam821.parkourrun.game.phase;
 
+import io.github.haykam821.parkourrun.game.ParkourRunConfig;
+import io.github.haykam821.parkourrun.game.ParkourRunSpawnLogic;
 import net.gegy1000.plasmid.game.Game;
 import net.gegy1000.plasmid.game.JoinResult;
 import net.gegy1000.plasmid.game.StartResult;
@@ -9,32 +11,25 @@ import net.gegy1000.plasmid.game.event.PlayerAddListener;
 import net.gegy1000.plasmid.game.event.PlayerDeathListener;
 import net.gegy1000.plasmid.game.event.RequestStartListener;
 import net.gegy1000.plasmid.game.map.GameMap;
-import net.gegy1000.plasmid.game.rule.GameRule;
-import net.gegy1000.plasmid.game.rule.RuleResult;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-public class ParkourRunGame {
+public class ParkourRunWaitingPhase {
 	private final ParkourRunConfig config;
 	private final ParkourRunSpawnLogic spawnLogic;
 
-	public ParkourRunGame(GameMap map, ParkourRunConfig config) {
+	public ParkourRunWaitingPhase(GameMap map, ParkourRunConfig config) {
 		this.config = config;
 		this.spawnLogic = new ParkourRunSpawnLogic(map);
 	}
 
 	public static Game open(GameMap map, ParkourRunConfig config) {
-		ParkourRunGame game = new ParkourRunGame(map, config);
+		ParkourRunWaitingPhase game = new ParkourRunWaitingPhase(map, config);
 
 		Game.Builder builder = Game.builder();
 		builder.setMap(map);
 
-		// Rules
-		builder.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
-		builder.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
-		builder.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
-		builder.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-		builder.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+		ParkourRunActivePhase.setRules(builder);
 
 		// Listeners
 		builder.on(PlayerAddListener.EVENT, game::addPlayer);
@@ -58,7 +53,9 @@ public class ParkourRunGame {
 		if (game.getPlayerCount() < playerConfig.getMinPlayers()) {
 			return StartResult.notEnoughPlayers();
 		}
-		return StartResult.ok(game);
+
+		Game activeGame = ParkourRunActivePhase.open(game.getMap(), game.getPlayerIds());
+		return StartResult.ok(activeGame);
 	}
 
 	public void addPlayer(Game game, ServerPlayerEntity player) {
