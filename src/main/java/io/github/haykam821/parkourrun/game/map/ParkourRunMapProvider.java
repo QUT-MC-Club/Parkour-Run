@@ -11,7 +11,6 @@ import net.gegy1000.plasmid.game.map.GameMap;
 import net.gegy1000.plasmid.game.map.GameMapBuilder;
 import net.gegy1000.plasmid.game.map.provider.MapProvider;
 import net.gegy1000.plasmid.world.BlockBounds;
-import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.Structure;
 import net.minecraft.structure.StructurePlacementData;
@@ -56,13 +55,6 @@ public class ParkourRunMapProvider implements MapProvider<ParkourRunConfig> {
 			}
 		}
 		this.place(builder.getWorld(), ParkourRunPools.ENDINGS.getRandomElement(random), random, pos);
-
-		for (int x = -10; x < 10; x++) {
-			for (int z = -10; z < 10; z++) {
-				pos.set(x, 0, z);
-				builder.setBlockState(pos, Blocks.SANDSTONE.getDefaultState());
-			}
-		}
 		
  		builder.addRegion("spawn", new BlockBounds(new BlockPos(4, 1, 5)));
 	}
