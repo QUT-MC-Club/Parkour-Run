@@ -47,19 +47,21 @@ public class ParkourRunMapProvider implements MapProvider<ParkourRunConfig> {
 		BlockPos.Mutable pos = builder.getOrigin().mutableCopy();
 		Random random = builder.getWorld().getRandom();
 
-		this.place(builder.getWorld(), ParkourRunPools.STARTS.getRandomElement(random), random, pos);
+		this.place("start", builder, ParkourRunPools.STARTS.getRandomElement(random), random, pos);
 		for (int index = 0; index < this.areaCount; index++) {
-			this.place(builder.getWorld(), ParkourRunPools.AREAS.getRandomElement(random), random, pos);
+			this.place("area", builder, ParkourRunPools.AREAS.getRandomElement(random), random, pos);
 			if (index + 1 < this.areaCount) {
-				this.place(builder.getWorld(), ParkourRunPools.CONNECTORS.getRandomElement(random), random, pos);
+				this.place("connector", builder, ParkourRunPools.CONNECTORS.getRandomElement(random), random, pos);
 			}
 		}
-		this.place(builder.getWorld(), ParkourRunPools.ENDINGS.getRandomElement(random), random, pos);
+		this.place("ending", builder, ParkourRunPools.ENDINGS.getRandomElement(random), random, pos);
 		
  		builder.addRegion("spawn", new BlockBounds(new BlockPos(4, 1, 5)));
 	}
 
-	private void place(ServerWorld world, StructurePoolElement element, Random random, BlockPos.Mutable pos) {
+	private void place(String marker, GameMapBuilder builder, StructurePoolElement element, Random random, BlockPos.Mutable pos) {
+		ServerWorld world = builder.getWorld();
+		
 		if (!(element instanceof SinglePoolElement)) return;
 		Structure structure = ((SinglePoolElement) element).method_27233(world.getStructureManager());
 
@@ -70,7 +72,9 @@ public class ParkourRunMapProvider implements MapProvider<ParkourRunConfig> {
 			placementData.setMirror(BlockMirror.LEFT_RIGHT);
 		}
 
+		builder.addRegion(marker, new BlockBounds(pos, pos.add(structure.getSize())));
 		structure.place(world, mirror ? pos.offset(Direction.SOUTH, structure.getSize().getZ() - 1) : pos, placementData, random);
+
 		pos.move(Direction.EAST, structure.getSize().getX());
 	}
 
