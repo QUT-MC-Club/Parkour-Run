@@ -23,10 +23,12 @@ import java.util.Set;
 public class ParkourRunActivePhase {
 	private final ParkourRunSpawnLogic spawnLogic;
 	private final Set<PlayerRef> players;
+	private final long startTime;
 
 	public ParkourRunActivePhase(GameMap map, Set<PlayerRef> players) {
 		this.spawnLogic = new ParkourRunSpawnLogic(map);
 		this.players = players;
+		this.startTime = map.getWorld().getTime();
 	}
 
 	public static void setRules(Game.Builder builder) {
@@ -61,7 +63,7 @@ public class ParkourRunActivePhase {
 
 			BlockState state = player.getLandingBlockState();
 			if (state.isIn(Main.ENDING_PLATFORMS)) {
-				ParkourRunResult result = new ParkourRunResult(player);
+				ParkourRunResult result = new ParkourRunResult(player, game.getWorld().getTime() - this.startTime);
 				game.onlinePlayers().forEach(result::announce);
 
 				game.close();
