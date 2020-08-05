@@ -54,7 +54,7 @@ public class ParkourRunWaitingPhase {
 			return StartResult.notEnoughPlayers();
 		}
 
-		Game activeGame = ParkourRunActivePhase.open(game.getMap(), game.getPlayerIds());
+		Game activeGame = ParkourRunActivePhase.open(game.getMap(), game.getPlayers());
 		return StartResult.ok(activeGame);
 	}
 

@@ -1,9 +1,5 @@
 package io.github.haykam821.parkourrun.game.phase;
 
-import java.util.Iterator;
-import java.util.Set;
-import java.util.UUID;
-
 import io.github.haykam821.parkourrun.Main;
 import io.github.haykam821.parkourrun.game.ParkourRunSpawnLogic;
 import net.gegy1000.plasmid.game.Game;
@@ -14,17 +10,21 @@ import net.gegy1000.plasmid.game.event.PlayerRejoinListener;
 import net.gegy1000.plasmid.game.map.GameMap;
 import net.gegy1000.plasmid.game.rule.GameRule;
 import net.gegy1000.plasmid.game.rule.RuleResult;
+import net.gegy1000.plasmid.util.PlayerRef;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.GameMode;
 
+import java.util.Iterator;
+import java.util.Set;
+
 public class ParkourRunActivePhase {
 	private final ParkourRunSpawnLogic spawnLogic;
-	private final Set<UUID> players;
+	private final Set<PlayerRef> players;
 
-	public ParkourRunActivePhase(GameMap map, Set<UUID> players) {
+	public ParkourRunActivePhase(GameMap map, Set<PlayerRef> players) {
 		this.spawnLogic = new ParkourRunSpawnLogic(map);
 		this.players = players;
 	}
@@ -37,7 +37,7 @@ public class ParkourRunActivePhase {
 		builder.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
 	}
 
-	public static Game open(GameMap map, Set<UUID> players) {
+	public static Game open(GameMap map, Set<PlayerRef> players) {
 		ParkourRunActivePhase game = new ParkourRunActivePhase(map, players);
 
 		Game.Builder builder = Game.builder();
@@ -75,7 +75,7 @@ public class ParkourRunActivePhase {
 	}
 
 	public void addPlayer(Game game, ServerPlayerEntity player) {
-		if (!this.players.contains(player.getUuid())) {
+		if (!this.players.contains(PlayerRef.of(player))) {
 			this.setSpectator(player);
 			this.spawnLogic.spawnPlayer(player);
 		}
