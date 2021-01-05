@@ -1,0 +1,13 @@
+{
+	"name": "parkourrun:connectors",
+	"fallback": "minecraft:empty",
+	"elements": [{
+		"weight": 1,
+		"element": {
+			"element_type": "minecraft:single_pool_element",
+			"location": "parkourrun:connectors/staircase_connector",
+			"projection": "rigid",
+			"processors": []
+		}
+	}]
+}

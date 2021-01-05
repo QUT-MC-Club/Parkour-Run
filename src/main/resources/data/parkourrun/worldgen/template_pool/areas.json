@@ -1,0 +1,21 @@
+{
+	"name": "parkourrun:areas",
+	"fallback": "minecraft:empty",
+	"elements": [{
+		"weight": 1,
+		"element": {
+			"element_type": "minecraft:single_pool_element",
+			"location": "parkourrun:areas/around_the_gate",
+			"projection": "rigid",
+			"processors": []
+		}
+	}, {
+		"weight": 1,
+		"element": {
+			"element_type": "minecraft:single_pool_element",
+			"location": "parkourrun:areas/ruined_portal",
+			"projection": "rigid",
+			"processors": []
+		}
+	}]
+}

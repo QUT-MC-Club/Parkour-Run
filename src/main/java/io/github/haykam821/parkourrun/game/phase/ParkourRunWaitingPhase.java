@@ -1,71 +1,85 @@
 package io.github.haykam821.parkourrun.game.phase;
 
+import java.util.concurrent.CompletableFuture;
+
 import io.github.haykam821.parkourrun.game.ParkourRunConfig;
 import io.github.haykam821.parkourrun.game.ParkourRunSpawnLogic;
-import net.gegy1000.plasmid.game.Game;
-import net.gegy1000.plasmid.game.JoinResult;
-import net.gegy1000.plasmid.game.StartResult;
-import net.gegy1000.plasmid.game.config.PlayerConfig;
-import net.gegy1000.plasmid.game.event.OfferPlayerListener;
-import net.gegy1000.plasmid.game.event.PlayerAddListener;
-import net.gegy1000.plasmid.game.event.PlayerDeathListener;
-import net.gegy1000.plasmid.game.event.RequestStartListener;
-import net.gegy1000.plasmid.game.map.GameMap;
+import io.github.haykam821.parkourrun.game.map.ParkourRunMap;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Util;
+import net.minecraft.world.GameMode;
+import xyz.nucleoid.plasmid.game.GameOpenContext;
+import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.game.StartResult;
+import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
+import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
+import xyz.nucleoid.plasmid.game.event.RequestStartListener;
+import xyz.nucleoid.plasmid.game.player.JoinResult;
+import xyz.nucleoid.plasmid.game.world.bubble.BubbleWorldConfig;
 
 public class ParkourRunWaitingPhase {
+	private final GameWorld gameWorld;
 	private final ParkourRunConfig config;
 	private final ParkourRunSpawnLogic spawnLogic;
 
-	public ParkourRunWaitingPhase(GameMap map, ParkourRunConfig config) {
+	public ParkourRunWaitingPhase(GameWorld gameWorld, ParkourRunMap map, ParkourRunConfig config) {
+		this.gameWorld = gameWorld;
 		this.config = config;
-		this.spawnLogic = new ParkourRunSpawnLogic(map);
+		this.spawnLogic = new ParkourRunSpawnLogic(map, this.gameWorld.getWorld());
 	}
 
-	public static Game open(GameMap map, ParkourRunConfig config) {
-		ParkourRunWaitingPhase game = new ParkourRunWaitingPhase(map, config);
+	public static CompletableFuture<Void> open(GameOpenContext<ParkourRunConfig> context) {
+		return CompletableFuture.supplyAsync(() -> {
+			return new ParkourRunMap(context.getConfig().getMapConfig());
+		}, Util.getMainWorkerExecutor()).thenAccept(map -> {
+			BubbleWorldConfig worldConfig = new BubbleWorldConfig()
+				.setGenerator(map.createGenerator(context.getServer()))
+				.setDefaultGameMode(GameMode.ADVENTURE);
 
-		Game.Builder builder = Game.builder();
-		builder.setMap(map);
+			GameWorld gameWorld = context.openWorld(worldConfig);
+			ParkourRunWaitingPhase phase = new ParkourRunWaitingPhase(gameWorld, map, context.getConfig());
+			gameWorld.openGame(game -> {
+				ParkourRunActivePhase.setRules(game);
 
-		ParkourRunActivePhase.setRules(builder);
-
-		// Listeners
-		builder.on(PlayerAddListener.EVENT, game::addPlayer);
-		builder.on(PlayerDeathListener.EVENT, game::onPlayerDeath);
-		builder.on(OfferPlayerListener.EVENT, game::offerPlayer);
-		builder.on(RequestStartListener.EVENT, game::requestStart);
-
-		return builder.build();
+				// Listeners
+				game.on(PlayerAddListener.EVENT, phase::addPlayer);
+				game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+				game.on(OfferPlayerListener.EVENT, phase::offerPlayer);
+				game.on(RequestStartListener.EVENT, phase::requestStart);
+			});
+		});
 	}
 
-	private boolean isFull(Game game) {
-		return game.getPlayerCount() >= this.config.getPlayerConfig().getMaxPlayers();
+	private boolean isFull() {
+		return this.gameWorld.getPlayerCount() >= this.config.getPlayerConfig().getMaxPlayers();
 	}
 
-	public JoinResult offerPlayer(Game game, ServerPlayerEntity player) {
-		return this.isFull(game) ? JoinResult.gameFull() : JoinResult.ok();
+	public JoinResult offerPlayer(ServerPlayerEntity player) {
+		return this.isFull() ? JoinResult.gameFull() : JoinResult.ok();
 	}
 
-	public StartResult requestStart(Game game) {
+	public StartResult requestStart() {
 		PlayerConfig playerConfig = this.config.getPlayerConfig();
-		if (game.getPlayerCount() < playerConfig.getMinPlayers()) {
+		if (this.gameWorld.getPlayerCount() < playerConfig.getMinPlayers()) {
 			return StartResult.notEnoughPlayers();
 		}
 
-		Game activeGame = ParkourRunActivePhase.open(game.getMap(), game.getPlayers());
-		return StartResult.ok(activeGame);
+		ParkourRunActivePhase.open(this.gameWorld, this.spawnLogic);
+		return StartResult.ok();
 	}
 
-	public void addPlayer(Game game, ServerPlayerEntity player) {
+	public void addPlayer(ServerPlayerEntity player) {
 		this.spawnPlayer(player);
 	}
 
-	public boolean onPlayerDeath(Game game, ServerPlayerEntity player, DamageSource source) {
+	public ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		// Respawn player at the start
 		this.spawnPlayer(player);
-		return true;
+		return ActionResult.FAIL;
 	}
 
 	public void spawnPlayer(ServerPlayerEntity player) {

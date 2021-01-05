@@ -1,22 +1,25 @@
 package io.github.haykam821.parkourrun.game;
 
-import net.gegy1000.plasmid.game.map.GameMap;
-import net.gegy1000.plasmid.world.BlockBounds;
+import io.github.haykam821.parkourrun.game.map.ParkourRunMap;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 
 public class ParkourRunSpawnLogic {
-	private final GameMap map;
+	private final ParkourRunMap map;
+	private final ServerWorld world;
 
-	public ParkourRunSpawnLogic(GameMap map) {
+	public ParkourRunSpawnLogic(ParkourRunMap map, ServerWorld world) {
 		this.map = map;
+		this.world = world;
 	}
 
 	public void spawnPlayer(ServerPlayerEntity player) {
-		BlockBounds spawn = this.map.getFirstRegion("spawn");
+		BlockBounds spawn = this.map.getSpawn();
 		if (spawn != null) {
 			BlockPos pos = new BlockPos(spawn.getCenter());
-			player.teleport(this.map.getWorld(), pos.getX(), pos.getY(), pos.getZ(), player.yaw, player.pitch);
+			player.teleport(this.world, pos.getX(), pos.getY(), pos.getZ(), player.yaw, player.pitch);
 		}
 	}
 }

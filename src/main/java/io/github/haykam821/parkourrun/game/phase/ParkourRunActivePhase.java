@@ -1,72 +1,71 @@
 package io.github.haykam821.parkourrun.game.phase;
 
+import java.util.Iterator;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
+
 import io.github.haykam821.parkourrun.Main;
 import io.github.haykam821.parkourrun.game.ParkourRunSpawnLogic;
-import net.gegy1000.plasmid.game.Game;
-import net.gegy1000.plasmid.game.event.GameTickListener;
-import net.gegy1000.plasmid.game.event.PlayerAddListener;
-import net.gegy1000.plasmid.game.event.PlayerDeathListener;
-import net.gegy1000.plasmid.game.event.PlayerRejoinListener;
-import net.gegy1000.plasmid.game.map.GameMap;
-import net.gegy1000.plasmid.game.rule.GameRule;
-import net.gegy1000.plasmid.game.rule.RuleResult;
-import net.gegy1000.plasmid.util.PlayerRef;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
-
-import java.util.Iterator;
-import java.util.Set;
+import xyz.nucleoid.plasmid.game.Game;
+import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.game.event.GameTickListener;
+import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
+import xyz.nucleoid.plasmid.game.rule.GameRule;
+import xyz.nucleoid.plasmid.game.rule.RuleResult;
 
 public class ParkourRunActivePhase {
+	private final GameWorld gameWorld;
 	private final ParkourRunSpawnLogic spawnLogic;
-	private final Set<PlayerRef> players;
+	private final Set<ServerPlayerEntity> players;
 	private final long startTime;
 
-	public ParkourRunActivePhase(GameMap map, Set<PlayerRef> players) {
-		this.spawnLogic = new ParkourRunSpawnLogic(map);
-		this.players = players;
-		this.startTime = map.getWorld().getTime();
+	public ParkourRunActivePhase(GameWorld gameWorld, ParkourRunSpawnLogic spawnLogic) {
+		this.gameWorld = gameWorld;
+		this.spawnLogic = spawnLogic;
+		this.players = Sets.newHashSet(gameWorld.getPlayers());
+		this.startTime = gameWorld.getWorld().getTime();
 	}
 
-	public static void setRules(Game.Builder builder) {
-		builder.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
-		builder.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
-		builder.setRule(GameRule.ALLOW_PVP, RuleResult.DENY);
-		builder.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-		builder.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+	public static void setRules(Game game) {
+		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+		game.setRule(GameRule.PORTALS, RuleResult.DENY);
+		game.setRule(GameRule.PVP, RuleResult.DENY);
+		game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+		game.setRule(GameRule.HUNGER, RuleResult.DENY);
 	}
 
-	public static Game open(GameMap map, Set<PlayerRef> players) {
-		ParkourRunActivePhase game = new ParkourRunActivePhase(map, players);
+	public static void open(GameWorld gameWorld, ParkourRunSpawnLogic spawnLogic) {
+		ParkourRunActivePhase phase = new ParkourRunActivePhase(gameWorld, spawnLogic);
 
-		Game.Builder builder = Game.builder();
-		builder.setMap(map);
+		gameWorld.openGame(game -> {
+			ParkourRunActivePhase.setRules(game);
 
-		ParkourRunActivePhase.setRules(builder);
-
-		// Listeners
-		builder.on(GameTickListener.EVENT, game::tick);
-		builder.on(PlayerAddListener.EVENT, game::addPlayer);
-		builder.on(PlayerDeathListener.EVENT, game::onPlayerDeath);
-		builder.on(PlayerRejoinListener.EVENT, game::rejoinPlayer);
-
-		return builder.build();
+			// Listeners
+			game.on(GameTickListener.EVENT, phase::tick);
+			game.on(PlayerAddListener.EVENT, phase::addPlayer);
+			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+		});
 	}
 
-	public void tick(Game game) {
-		Iterator<ServerPlayerEntity> iterator = game.onlinePlayers().iterator();
+	public void tick() {
+		Iterator<ServerPlayerEntity> iterator = this.players.iterator();
 		while (iterator.hasNext()) {
 			ServerPlayerEntity player = iterator.next();
 
 			BlockState state = player.getLandingBlockState();
 			if (state.isIn(Main.ENDING_PLATFORMS)) {
-				ParkourRunResult result = new ParkourRunResult(player, game.getWorld().getTime() - this.startTime);
-				game.onlinePlayers().forEach(result::announce);
+				ParkourRunResult result = new ParkourRunResult(player, this.gameWorld.getWorld().getTime() - this.startTime);
+				this.gameWorld.getPlayers().forEach(result::announce);
 
-				game.close();
+				this.gameWorld.close();
 				return;
 			}
 		}
@@ -76,21 +75,16 @@ public class ParkourRunActivePhase {
 		player.setGameMode(GameMode.SPECTATOR);
 	}
 
-	public void addPlayer(Game game, ServerPlayerEntity player) {
-		if (!this.players.contains(PlayerRef.of(player))) {
+	public void addPlayer(ServerPlayerEntity player) {
+		if (!this.players.contains(player)) {
 			this.setSpectator(player);
 			this.spawnLogic.spawnPlayer(player);
 		}
 	}
 
-	public boolean onPlayerDeath(Game game, ServerPlayerEntity player, DamageSource source) {
+	public ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		// Respawn player at the start
 		this.spawnLogic.spawnPlayer(player);
-		return true;
-	}
-
-	public void rejoinPlayer(Game game, ServerPlayerEntity player) {
-		this.setSpectator(player);
-		this.spawnLogic.spawnPlayer(player);
+		return ActionResult.FAIL;
 	}
 }
