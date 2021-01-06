@@ -13,8 +13,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
-import xyz.nucleoid.plasmid.game.Game;
-import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.game.GameCloseReason;
+import xyz.nucleoid.plasmid.game.GameLogic;
+import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
@@ -22,19 +23,19 @@ import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
 
 public class ParkourRunActivePhase {
-	private final GameWorld gameWorld;
+	private final GameSpace gameSpace;
 	private final ParkourRunSpawnLogic spawnLogic;
 	private final Set<ServerPlayerEntity> players;
 	private final long startTime;
 
-	public ParkourRunActivePhase(GameWorld gameWorld, ParkourRunSpawnLogic spawnLogic) {
-		this.gameWorld = gameWorld;
+	public ParkourRunActivePhase(GameSpace gameSpace, ParkourRunSpawnLogic spawnLogic) {
+		this.gameSpace = gameSpace;
 		this.spawnLogic = spawnLogic;
-		this.players = Sets.newHashSet(gameWorld.getPlayers());
-		this.startTime = gameWorld.getWorld().getTime();
+		this.players = Sets.newHashSet(gameSpace.getPlayers());
+		this.startTime = gameSpace.getWorld().getTime();
 	}
 
-	public static void setRules(Game game) {
+	public static void setRules(GameLogic game) {
 		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
 		game.setRule(GameRule.PORTALS, RuleResult.DENY);
 		game.setRule(GameRule.PVP, RuleResult.DENY);
@@ -42,10 +43,10 @@ public class ParkourRunActivePhase {
 		game.setRule(GameRule.HUNGER, RuleResult.DENY);
 	}
 
-	public static void open(GameWorld gameWorld, ParkourRunSpawnLogic spawnLogic) {
-		ParkourRunActivePhase phase = new ParkourRunActivePhase(gameWorld, spawnLogic);
+	public static void open(GameSpace gameSpace, ParkourRunSpawnLogic spawnLogic) {
+		ParkourRunActivePhase phase = new ParkourRunActivePhase(gameSpace, spawnLogic);
 
-		gameWorld.openGame(game -> {
+		gameSpace.openGame(game -> {
 			ParkourRunActivePhase.setRules(game);
 
 			// Listeners
@@ -62,10 +63,10 @@ public class ParkourRunActivePhase {
 
 			BlockState state = player.getLandingBlockState();
 			if (state.isIn(Main.ENDING_PLATFORMS)) {
-				ParkourRunResult result = new ParkourRunResult(player, this.gameWorld.getWorld().getTime() - this.startTime);
-				this.gameWorld.getPlayers().forEach(result::announce);
+				ParkourRunResult result = new ParkourRunResult(player, this.gameSpace.getWorld().getTime() - this.startTime);
+				this.gameSpace.getPlayers().forEach(result::announce);
 
-				this.gameWorld.close();
+				this.gameSpace.close(GameCloseReason.FINISHED);
 				return;
 			}
 		}

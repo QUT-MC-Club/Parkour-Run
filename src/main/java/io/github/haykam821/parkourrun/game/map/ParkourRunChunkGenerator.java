@@ -82,7 +82,7 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 		PoolStructurePiece piece = new PoolStructurePiece(structureManager, element, pos.toImmutable(), 0, BlockRotation.NONE, box);
 		pieces.add(piece);
 
-		this.map.getTemplate().addRegion(marker, new BlockBounds(pos, pos.add(structure.getSize())));
+		this.map.getTemplate().getMetadata().addRegion(marker, new BlockBounds(pos, pos.add(structure.getSize())));
 		pos.move(Direction.EAST, structure.getSize().getX());
 	}
 
