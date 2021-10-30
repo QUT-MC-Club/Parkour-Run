@@ -117,7 +117,7 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 		if (pieces != null) {
 			BlockBox chunkBox = new BlockBox(chunkPos.getStartX(), 0, chunkPos.getStartZ(), chunkPos.getEndX(), 255, chunkPos.getEndZ());
 			for (PoolStructurePiece piece : pieces) {
-				piece.method_27236(region, structures, this, region.getRandom(), chunkBox, this.map.getOrigin(), false);
+				piece.generate(region, structures, this, region.getRandom(), chunkBox, this.map.getOrigin(), false);
 			}
 		}
 	}
