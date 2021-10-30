@@ -20,7 +20,6 @@ import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
 
 public class ParkourRunActivePhase {
 	private final GameSpace gameSpace;
@@ -36,11 +35,11 @@ public class ParkourRunActivePhase {
 	}
 
 	public static void setRules(GameLogic game) {
-		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-		game.setRule(GameRule.PORTALS, RuleResult.DENY);
-		game.setRule(GameRule.PVP, RuleResult.DENY);
-		game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-		game.setRule(GameRule.HUNGER, RuleResult.DENY);
+		game.deny(GameRule.CRAFTING);
+		game.deny(GameRule.PORTALS);
+		game.deny(GameRule.PVP);
+		game.deny(GameRule.FALL_DAMAGE);
+		game.deny(GameRule.HUNGER);
 	}
 
 	public static void open(GameSpace gameSpace, ParkourRunSpawnLogic spawnLogic) {
@@ -50,9 +49,9 @@ public class ParkourRunActivePhase {
 			ParkourRunActivePhase.setRules(game);
 
 			// Listeners
-			game.on(GameTickListener.EVENT, phase::tick);
-			game.on(PlayerAddListener.EVENT, phase::addPlayer);
-			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+			game.listen(GameTickListener.EVENT, phase::tick);
+			game.listen(PlayerAddListener.EVENT, phase::addPlayer);
+			game.listen(PlayerDeathListener.EVENT, phase::onPlayerDeath);
 		});
 	}
 

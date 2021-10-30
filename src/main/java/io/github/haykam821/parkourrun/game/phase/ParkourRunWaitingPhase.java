@@ -38,16 +38,16 @@ public class ParkourRunWaitingPhase {
 			.setDefaultGameMode(GameMode.ADVENTURE);
 
 		return context.createOpenProcedure(worldConfig, game -> {
-			ParkourRunWaitingPhase phase = new ParkourRunWaitingPhase(game.getSpace(), map, context.getConfig());
+			ParkourRunWaitingPhase phase = new ParkourRunWaitingPhase(game.getGameSpace(), map, context.getConfig());
 			GameWaitingLobby.applyTo(game, context.getConfig().getPlayerConfig());
 
 			ParkourRunActivePhase.setRules(game);
 
 			// Listeners
-			game.on(PlayerAddListener.EVENT, phase::addPlayer);
-			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
-			game.on(OfferPlayerListener.EVENT, phase::offerPlayer);
-			game.on(RequestStartListener.EVENT, phase::requestStart);
+			game.listen(PlayerAddListener.EVENT, phase::addPlayer);
+			game.listen(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+			game.listen(OfferPlayerListener.EVENT, phase::offerPlayer);
+			game.listen(RequestStartListener.EVENT, phase::requestStart);
 		});
 	}
 
