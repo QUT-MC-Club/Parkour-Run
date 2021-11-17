@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import io.github.haykam821.parkourrun.game.map.ParkourRunMapConfig;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 
 public class ParkourRunConfig {
 	public static final Codec<ParkourRunConfig> CODEC = RecordCodecBuilder.create(instance -> {

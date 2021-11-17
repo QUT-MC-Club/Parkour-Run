@@ -3,12 +3,12 @@ package io.github.haykam821.parkourrun.game.map;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.map_templates.MapTemplate;
 
 public class ParkourRunMap {
 	private final BlockPos origin = new BlockPos(0, 0, 0);
-	private final BlockBounds spawn = BlockBounds.of(new BlockPos(4, 1, 5));
+	private final BlockBounds spawn = BlockBounds.ofBlock(new BlockPos(4, 1, 5));
 	private final MapTemplate template = MapTemplate.createEmpty();
 	private final ParkourRunMapConfig config;
 

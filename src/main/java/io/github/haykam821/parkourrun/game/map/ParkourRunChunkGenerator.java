@@ -28,8 +28,8 @@ import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.StructureAccessor;
+import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.game.world.generator.GameChunkGenerator;
-import xyz.nucleoid.plasmid.util.BlockBounds;
 
 public class ParkourRunChunkGenerator extends GameChunkGenerator {
 	private static final Identifier STARTS_ID = new Identifier(Main.MOD_ID, "starts");
@@ -51,7 +51,7 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 		this.map = map;
 		this.structureManager = server.getStructureManager();
 
-		Registry<StructurePool> poolRegistry = server.getRegistryManager().get(Registry.TEMPLATE_POOL_WORLDGEN);
+		Registry<StructurePool> poolRegistry = server.getRegistryManager().get(Registry.STRUCTURE_POOL_KEY);
 		this.starts = poolRegistry.get(STARTS_ID);
 		this.areas = poolRegistry.get(AREAS_ID);
 		this.connectors = poolRegistry.get(CONNECTORS_ID);
@@ -59,10 +59,10 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 
 		for (PoolStructurePiece piece : this.generatePieces()) {
 			BlockBox box = piece.getBoundingBox();
-			int minChunkX = box.minX >> 4;
-			int minChunkZ = box.minZ >> 4;
-			int maxChunkX = box.maxX >> 4;
-			int maxChunkZ = box.maxZ >> 4;
+			int minChunkX = box.getMinX() >> 4;
+			int minChunkZ = box.getMinZ() >> 4;
+			int maxChunkX = box.getMaxX() >> 4;
+			int maxChunkZ = box.getMaxZ() >> 4;
 
 			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
 				for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
@@ -78,11 +78,11 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 		if (!(element instanceof SinglePoolElement)) return;
 		Structure structure = ((SinglePoolElement) element).method_27233(this.structureManager);
 
-		BlockBox box = new BlockBox(pos, pos.add(structure.getSize()));
+		BlockBox box = BlockBox.create(pos, pos.add(structure.getSize()));
 		PoolStructurePiece piece = new PoolStructurePiece(structureManager, element, pos.toImmutable(), 0, BlockRotation.NONE, box);
 		pieces.add(piece);
 
-		this.map.getTemplate().getMetadata().addRegion(marker, new BlockBounds(pos, pos.add(structure.getSize())));
+		this.map.getTemplate().getMetadata().addRegion(marker, BlockBounds.of(pos, pos.add(structure.getSize())));
 		pos.move(Direction.EAST, structure.getSize().getX());
 	}
 
@@ -111,11 +111,11 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 			return;
 		}
 
-		ChunkPos chunkPos = new ChunkPos(region.getCenterChunkX(), region.getCenterChunkZ());
+		ChunkPos chunkPos = new ChunkPos(region.getCenterPos().x, region.getCenterPos().z);
 		List<PoolStructurePiece> pieces = this.piecesByChunk.remove(chunkPos.toLong());
 
 		if (pieces != null) {
-			BlockBox chunkBox = new BlockBox(chunkPos.getStartX(), 0, chunkPos.getStartZ(), chunkPos.getEndX(), 255, chunkPos.getEndZ());
+			BlockBox chunkBox = new BlockBox(chunkPos.getStartX(), region.getBottomY(), chunkPos.getStartZ(), chunkPos.getEndX(), region.getTopY(), chunkPos.getEndZ());
 			for (PoolStructurePiece piece : pieces) {
 				piece.generate(region, structures, this, region.getRandom(), chunkBox, this.map.getOrigin(), false);
 			}

@@ -3,8 +3,8 @@ package io.github.haykam821.parkourrun.game;
 import io.github.haykam821.parkourrun.game.map.ParkourRunMap;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import net.minecraft.util.math.Vec3d;
+import xyz.nucleoid.map_templates.BlockBounds;
 
 public class ParkourRunSpawnLogic {
 	private final ParkourRunMap map;
@@ -15,11 +15,13 @@ public class ParkourRunSpawnLogic {
 		this.world = world;
 	}
 
-	public void spawnPlayer(ServerPlayerEntity player) {
+	public Vec3d getSpawnPos() {
 		BlockBounds spawn = this.map.getSpawn();
-		if (spawn != null) {
-			BlockPos pos = new BlockPos(spawn.getCenter());
-			player.teleport(this.world, pos.getX(), pos.getY(), pos.getZ(), player.yaw, player.pitch);
-		}
+		return spawn == null ? Vec3d.ZERO : spawn.center();
+	}
+
+	public void spawnPlayer(ServerPlayerEntity player) {
+		Vec3d pos = this.getSpawnPos();
+		player.teleport(this.world, pos.getX(), pos.getY(), pos.getZ(), player.getYaw(), player.getPitch());
 	}
 }
