@@ -23,10 +23,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.ChunkRegion;
-import net.minecraft.world.biome.source.BiomeAccess;
+import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.StructureAccessor;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.game.world.generator.GameChunkGenerator;
@@ -76,7 +74,7 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 
 	private void generatePiece(String marker, Set<PoolStructurePiece> pieces, StructurePoolElement element, Random random, BlockPos.Mutable pos) {
 		if (!(element instanceof SinglePoolElement)) return;
-		Structure structure = ((SinglePoolElement) element).method_27233(this.structureManager);
+		Structure structure = ((SinglePoolElement) element).getStructure(this.structureManager);
 
 		BlockBox box = BlockBox.create(pos, pos.add(structure.getSize()));
 		PoolStructurePiece piece = new PoolStructurePiece(structureManager, element, pos.toImmutable(), 0, BlockRotation.NONE, box);
@@ -106,24 +104,19 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 	}
 
 	@Override
-	public void generateFeatures(ChunkRegion region, StructureAccessor structures) {
+	public void generateFeatures(StructureWorldAccess world, Chunk chunk, StructureAccessor structures) {
 		if (this.piecesByChunk.isEmpty()) {
 			return;
 		}
 
-		ChunkPos chunkPos = new ChunkPos(region.getCenterPos().x, region.getCenterPos().z);
+		ChunkPos chunkPos = chunk.getPos();
 		List<PoolStructurePiece> pieces = this.piecesByChunk.remove(chunkPos.toLong());
 
 		if (pieces != null) {
-			BlockBox chunkBox = new BlockBox(chunkPos.getStartX(), region.getBottomY(), chunkPos.getStartZ(), chunkPos.getEndX(), region.getTopY(), chunkPos.getEndZ());
+			BlockBox chunkBox = new BlockBox(chunkPos.getStartX(), world.getBottomY(), chunkPos.getStartZ(), chunkPos.getEndX(), world.getTopY(), chunkPos.getEndZ());
 			for (PoolStructurePiece piece : pieces) {
-				piece.generate(region, structures, this, region.getRandom(), chunkBox, this.map.getOrigin(), false);
+				piece.generate(world, structures, this, world.getRandom(), chunkBox, this.map.getOrigin(), false);
 			}
 		}
-	}
-
-	@Override
-	public void carve(long seed, BiomeAccess access, Chunk chunk, GenerationStep.Carver carver) {
-		return;
 	}
 }
