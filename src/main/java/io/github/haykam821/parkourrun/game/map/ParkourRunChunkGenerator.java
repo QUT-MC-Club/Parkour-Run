@@ -8,6 +8,8 @@ import java.util.Set;
 import io.github.haykam821.parkourrun.Main;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.PoolStructurePiece;
 import net.minecraft.structure.StructureTemplate;
@@ -22,7 +24,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
@@ -49,7 +50,7 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 		this.map = map;
 		this.structureTemplateManager = server.getStructureTemplateManager();
 
-		Registry<StructurePool> poolRegistry = server.getRegistryManager().get(Registry.STRUCTURE_POOL_KEY);
+		Registry<StructurePool> poolRegistry = server.getRegistryManager().get(RegistryKeys.TEMPLATE_POOL);
 		this.starts = poolRegistry.get(STARTS_ID);
 		this.areas = poolRegistry.get(AREAS_ID);
 		this.connectors = poolRegistry.get(CONNECTORS_ID);
