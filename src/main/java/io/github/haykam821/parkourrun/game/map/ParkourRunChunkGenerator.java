@@ -3,16 +3,17 @@ package io.github.haykam821.parkourrun.game.map;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import io.github.haykam821.parkourrun.Main;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.PoolStructurePiece;
-import net.minecraft.structure.Structure;
-import net.minecraft.structure.StructureManager;
+import net.minecraft.structure.StructureTemplate;
+import net.minecraft.structure.StructureTemplateManager;
 import net.minecraft.structure.pool.SinglePoolElement;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
@@ -22,7 +23,7 @@ import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
@@ -36,7 +37,7 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 	private static final Identifier ENDINGS_ID = new Identifier(Main.MOD_ID, "endings");
 
 	private final ParkourRunMap map;
-	private final StructureManager structureManager;
+	private final StructureTemplateManager structureTemplateManager;
 	private final Long2ObjectMap<List<PoolStructurePiece>> piecesByChunk = new Long2ObjectOpenHashMap<>();
 
 	private final StructurePool starts;
@@ -47,9 +48,9 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 	public ParkourRunChunkGenerator(MinecraftServer server, ParkourRunMap map) {
 		super(server);
 		this.map = map;
-		this.structureManager = server.getStructureManager();
+		this.structureTemplateManager = server.getStructureTemplateManager();
 
-		Registry<StructurePool> poolRegistry = server.getRegistryManager().get(Registry.STRUCTURE_POOL_KEY);
+		Registry<StructurePool> poolRegistry = server.getRegistryManager().get(RegistryKeys.TEMPLATE_POOL);
 		this.starts = poolRegistry.get(STARTS_ID);
 		this.areas = poolRegistry.get(AREAS_ID);
 		this.connectors = poolRegistry.get(CONNECTORS_ID);
@@ -74,10 +75,10 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 
 	private void generatePiece(String marker, Set<PoolStructurePiece> pieces, StructurePoolElement element, Random random, BlockPos.Mutable pos) {
 		if (!(element instanceof SinglePoolElement)) return;
-		Structure structure = ((SinglePoolElement) element).getStructure(this.structureManager);
+		StructureTemplate structure = ((SinglePoolElement) element).getStructure(this.structureTemplateManager);
 
 		BlockBox box = BlockBox.create(pos, pos.add(structure.getSize()));
-		PoolStructurePiece piece = new PoolStructurePiece(structureManager, element, pos.toImmutable(), 0, BlockRotation.NONE, box);
+		PoolStructurePiece piece = new PoolStructurePiece(this.structureTemplateManager, element, pos.toImmutable(), 0, BlockRotation.NONE, box);
 		pieces.add(piece);
 
 		this.map.getTemplate().getMetadata().addRegion(marker, BlockBounds.of(pos, pos.add(structure.getSize())));
@@ -88,7 +89,7 @@ public class ParkourRunChunkGenerator extends GameChunkGenerator {
 		Set<PoolStructurePiece> pieces = new HashSet<>();
 
 		BlockPos.Mutable pos = this.map.getOrigin().mutableCopy();
-		Random random = new Random();
+		Random random = Random.createLocal();
 		int areaCount = this.map.getConfig().getAreaCount();
 
 		this.generatePiece("start", pieces, this.starts.getRandomElement(random), random, pos);

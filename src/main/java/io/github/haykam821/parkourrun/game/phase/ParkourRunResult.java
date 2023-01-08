@@ -24,7 +24,7 @@ public class ParkourRunResult {
 	}
 
 	public Text getText() {
-		return this.winner.getDisplayName().shallowCopy().append(String.format(" has won Parkour Run in %,d seconds!", (long) this.getTimeInSeconds(), Locale.ROOT)).formatted(Formatting.GOLD);
+		return this.winner.getDisplayName().copy().append(String.format(" has won Parkour Run in %,d seconds!", (long) this.getTimeInSeconds(), Locale.ROOT)).formatted(Formatting.GOLD);
 	}
 
 	public void announce(PlayerEntity to) {

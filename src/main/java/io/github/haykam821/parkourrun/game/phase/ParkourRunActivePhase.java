@@ -64,7 +64,7 @@ public class ParkourRunActivePhase {
 		while (iterator.hasNext()) {
 			ServerPlayerEntity player = iterator.next();
 
-			BlockState state = player.getLandingBlockState();
+			BlockState state = player.getSteppingBlockState();
 			if (state.isIn(Main.ENDING_PLATFORMS)) {
 				ParkourRunResult result = new ParkourRunResult(player, this.world.getTime() - this.startTime);
 				this.gameSpace.getPlayers().forEach(result::announce);
