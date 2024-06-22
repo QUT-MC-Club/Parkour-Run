@@ -13,6 +13,14 @@
 		"weight": 1,
 		"element": {
 			"element_type": "minecraft:single_pool_element",
+			"location": "parkourrun:connectors/river_connector",
+			"projection": "rigid",
+			"processors": []
+		}
+	}, {
+		"weight": 1,
+		"element": {
+			"element_type": "minecraft:single_pool_element",
 			"location": "parkourrun:connectors/staircase_connector",
 			"projection": "rigid",
 			"processors": []
